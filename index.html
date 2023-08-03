@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta http-equiv="Cache-Control" content="no-cache">
+<meta http-equiv="Expires"       content="0">
+<meta http-equiv="Content-Type"  content="text/html; charset=windows-1251">
+<title>Basics</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+</head>
+
+<body>
+	<!-- Круговые диаграммы -->
+	<div class="chartContainer">
+		<div class="chart">
+			<p>Кольцевая диаграмма</p>
+			<div id="doughnutChart"></div>	
+		</div>		
+		
+		<div class="chart">
+			<p>Круговая диаграмма</p>
+			<div class="chartContainer">
+				<div id="pieChart"></div>
+				<div id="legend"></div>			
+			</div>
+		</div>
+	</div>	
+	
+	<!-- XY-диаграммы -->
+	<div class="chartContainer">
+		<div class="chart">
+			<p>Линейно-столбчатая диаграмма</p>
+			<div id="lineColumnChart"></div>	
+		</div>
+	</div>
+	
+	<div class="chartContainer">
+		<div class="chart">
+			<p>Cтолбчатая диаграмма</p>
+			<div id="columnChart"></div>	
+		</div>		
+		
+		<div class="chart">
+			<p>Линейная диаграмма</p>
+			<div id="lineChart"></div>	
+		</div>		
+	</div>	
+	
+	<!-- Radar-диаграммы -->
+	<div class="chartContainer">
+		<div class="chart">
+			<div id="radarChart1"></div>	
+		</div>			
+		<div class="chart">
+			<div id="radarChart2"></div>	
+		</div>			
+		<div class="chart">
+			<div id="radarChart3"></div>	
+		</div>				
+	</div>
+	
+	<p>Калибровочные диаграммы</p>
+	<div class="chartContainer">
+		<div class="chart">
+			<div id="gaugeChart1"></div>	
+		</div>			
+		<div class="chart">
+			<div id="gaugeChart2"></div>	
+		</div>							
+	</div>
+	
+	<script src="index.js"></script>
+</body>
+
+</html>
