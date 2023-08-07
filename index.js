@@ -121,12 +121,60 @@ lineData = [{
   "value2": 62
 }];
 
+gaugeData = {
+  score: 52.7,
+  gradingData: [
+    {
+      title: "Unsustainable",
+      color: "#ee1f25",
+      lowScore: -100,
+      highScore: -20
+    },
+    {
+      title: "Volatile",
+      color: "#f04922",
+      lowScore: -20,
+      highScore: 0
+    },
+    {
+      title: "Foundational",
+      color: "#fdae19",
+      lowScore: 0,
+      highScore: 20
+    },
+    {
+      title: "Developing",
+      color: "#f3eb0c",
+      lowScore: 20,
+      highScore: 40
+    },
+    {
+      title: "Maturing",
+      color: "#b0d136",
+      lowScore: 40,
+      highScore: 60
+    },
+    {
+      title: "Sustainable",
+      color: "#54b947",
+      lowScore: 60,
+      highScore: 80
+    },
+    {
+      title: "High Performing",
+      color: "#0f9747",
+      lowScore: 80,
+      highScore: 100
+    }
+  ]
+};
+
 // --- Doughnut Chart ---
 const drawDonutChart = () => {
 	let donutChart = am4core.create("doughnutChart", am4charts.PieChart); // Экземпляр круговой диаграммы.
 																		  // Для создания диаграммы на основе чистых JSON-данных используется функция am4charts.createFromConfig().
 	donutChart.data = data;
-	
+
 	donutChart.innerRadius = am4core.percent(40); // Преобразование круговой диаграммы в кольцевую.
 	// donutChart.radius = am4core.percent(100);  // Радиус.
 
@@ -175,34 +223,12 @@ const drawDonutChart = () => {
 };
 drawDonutChart();
 
-// (читать)
 // --- Pie Chart ---
-{
-	// Вспомогательные функции.
-	function toggleSlice(item) {
-	  let slice = pieSeries.dataItems.getIndex(item);
-	  if (slice.visible) {
-		slice.hide();
-	  }
-	  else {
-		slice.show();
-	  };
-	};
-
-	function hoverSlice(item) {
-	  let slice = pieSeries.slices.getIndex(item);
-	  slice.isHover = true;
-	};
-
-	function blurSlice(item) {
-	  let slice = pieSeries.slices.getIndex(item);
-	  slice.isHover = false;
-	};
-	
-	// ---
-	
+const drawPieChart = () => {
 	let pieChart = am4core.create("pieChart", am4charts.PieChart); // Экземпляр круговой диаграммы.
 	pieChart.data = data;
+	pieChart.legend = new am4charts.Legend();
+	pieChart.legend.position = "right";
 
 	let pieSeries = pieChart.series.push(new am4charts.PieSeries());
 	pieSeries.dataFields.value = "litres";
@@ -215,7 +241,7 @@ drawDonutChart();
 	pieSeries.labels.template.fill = am4core.color("white"); 				 // Цвет текстовой метки.
 	pieSeries.hiddenState.properties.endAngle = -90;
 
-	// Чтобы всё помещалось 
+	// Чтобы всё помещалось.
 	pieSeries.labels.template.adapter.add("radius", function(radius, target) { // !!! Следует почитать про callback-функции !!!
 	  if (target.dataItem && (target.dataItem.values.value.percent < 10)) {
 		return 0;
@@ -230,7 +256,7 @@ drawDonutChart();
 	  return color;
 	});
 
-	// Вытягивание только одного кусочка
+	// Вытягивание только одного кусочка.
 	pieSeries.slices.template.events.on("hit", function(ev) { // !!! Следует почитать про event-ы !!!
 	  let series = ev.target.dataItem.component;
 	  series.slices.each(function(item) {
@@ -239,24 +265,14 @@ drawDonutChart();
 		}
 	  })
 	});
-
-	// Кастомная легенда !!! ТУТ ВСЁ НАДО ЧИТАТЬ !!!
-	pieChart.events.on("ready", function(event) { 
-	  pieChart.customLegend = document.getElementById('legend');
-	  pieSeries.dataItems.each(function(row, i) {
-		let color = pieChart.colors.getIndex(i);
-		let percent = Math.round(row.values.value.percent * 100) / 100;
-		let value = row.value;
-		legend.innerHTML += '<div class="legend-item" id="legend-item-' + i + '" onclick="toggleSlice(' + i + ');" onmouseover="hoverSlice(' + i + ');" onmouseout="blurSlice(' + i + ');" style="color: ' + color + ';"><div class="legend-marker" style="background: ' + color + '"></div>' + row.category + '<div class="legend-value">' + value + ' | ' + percent + '%</div></div>';
-	  });
-	});
 };
+drawPieChart();
 
 // --- Line-Column Chart ---
 const drawLineColumnChart = () => {
-	let lineColumnChart = am4core.create("lineColumnChart", am4charts.XYChart); // Экземпляр XY-диаграммы.
-	lineColumnChart.padding(10, 20, 0, 0);           							// Определение внутренних отступов.
-	lineColumnChart.cursor = new am4charts.XYCursor(); 							// Курсор.
+	let lineColumnChart = am4core.create("lineColumnChart", am4charts.XYChart);  // Экземпляр XY-диаграммы.
+	lineColumnChart.padding(10, 20, 0, 0);           							 // Определение внутренних отступов.
+	lineColumnChart.cursor = new am4charts.XYCursor(); 							 // Курсор.
 	lineColumnChart.data = data;
 
 	let categoryAxis = lineColumnChart.xAxes.push(new am4charts.CategoryAxis()); // Ось X - ось категорий.
@@ -378,7 +394,7 @@ const drawLineChart = () => {
 	lineSeries.strokeWidth = 3;
 	lineSeries.strokeDasharray = "3,3"; // Точки. 
 	lineSeries.bullets.push(new am4charts.CircleBullet());
-	lineSeries.connect = false;    // Разъединение линии при наличии пустых точек данных. 
+	lineSeries.connect = false;    		// Разъединение линии при наличии пустых точек данных. 
 
 	let secondLineSeries = lineChart.series.push(new am4charts.LineSeries());
 	secondLineSeries.dataFields.valueY = "value2";
@@ -397,7 +413,7 @@ const drawRadarChart1 = () => {
 	// container.height = am4core.percent(100);
 	// container.layout = "horizontal";
 	
-	let radarChart = am4core.create("radarChart1", am4charts.RadarChart); // Экземпляр радиальной диаграммы.
+	let radarChart = am4core.create("radarChart1", am4charts.RadarChart);   // Экземпляр радиальной диаграммы.
 	radarChart.data = columnData;
 	radarChart.cursor = new am4charts.RadarCursor();
 	
@@ -475,6 +491,7 @@ const drawRadarChart2 = () => {
 const drawRadarChart3 = () => {
 	let thirdRadarChart = am4core.create("radarChart3", am4charts.RadarChart); // Экземпляр радиальной диаграммы.
 	thirdRadarChart.data = columnData;
+	thirdRadarChart.zoomOutButton.disabled = true;
 	
 	let ctAxis = thirdRadarChart.xAxes.push(new am4charts.CategoryAxis());
 	ctAxis.dataFields.category = "country";
@@ -526,22 +543,146 @@ drawRadarChart1();
 drawRadarChart2();
 drawRadarChart3();
 
-// (доделать)
 // --- Gauge Charts ---
 const drawGaugeChart1 = () => {
-	let gaugeChart = am4core.create("gaugeChart1", am4charts.GaugeChart); // Экземпляр калибровочной диаграммы (диаграммы индикаторов). Не имеет возможности использовать данные.
+	let gaugeChart = am4core.create("gaugeChart1", am4charts.GaugeChart);
+	gaugeChart.innerRadius = am4core.percent(80);
 	
-	let axis = gaugeChart.xAxes.push(new am4charts.ValueAxis()); 
-	axis.min = 0;
-	axis.max = 100;
+	let chartMin = -50;
+	let chartMax = 100;
+	
+	let axis = gaugeChart.xAxes.push(new am4charts.ValueAxis());
+	axis.min = chartMin;
+	axis.max = chartMax;
 	axis.strictMinMax = true;
+	axis.renderer.radius = am4core.percent(80);
+	axis.renderer.inside = true;
+	axis.renderer.line.strokeOpacity = 0.1;
+	axis.renderer.ticks.template.disabled = false;
+	axis.renderer.ticks.template.strokeOpacity = 1;
+	axis.renderer.ticks.template.strokeWidth = 0.5;
+	axis.renderer.ticks.template.length = 5;
+	axis.renderer.labels.template.radius = am4core.percent(15);
+	axis.renderer.labels.template.fontSize = "0.9em";
 	
-	let range = axis.axisRanges.create();
-	range.value = 0;
-	range.endValue = 70;
-	range.axisFill.fillOpacity = 1;
-	range.axisFill.fill = am4core.color("#88AB75");
-	range.axisFill.zIndex = -1;
+	let axis2 = gaugeChart.xAxes.push(new am4charts.ValueAxis());
+	axis2.min = chartMin;
+	axis2.max = chartMax;
+	axis2.strictMinMax = true;
+	axis2.renderer.labels.template.disabled = true;
+	axis2.renderer.grid.template.opacity = 0;
+	axis2.renderer.labels.template.bent = true; // "Сгибание" метки по окружности.
+	axis2.renderer.labels.template.fill = am4core.color("#000");
+	axis2.renderer.labels.template.fontWeight = "bold";
+	axis2.renderer.labels.template.fillOpacity = 0.7;
+	
+	for (let grading of gaugeData.gradingData) {
+	  let range = axis2.axisRanges.create(); // Создание диапазона (начальное и конечное положение на оси).
+	  range.axisFill.fill = am4core.color(grading.color);
+	  range.axisFill.fillOpacity = 0.8;
+	  range.axisFill.zIndex = -1;
+	  range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+	  range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+	  range.grid.strokeOpacity = 0;
+	  range.stroke = am4core.color(grading.color).lighten(-0.1);
+	  range.label.inside = true;
+	  range.label.text = grading.title.toUpperCase();
+	  range.label.inside = true;
+	  range.label.location = 0.5;
+	  range.label.inside = true;
+	  range.label.radius = am4core.percent(10);
+	  range.label.paddingBottom = -5;
+	  range.label.fontSize = "0.6em";
+	};
+	
+	let label = gaugeChart.radarContainer.createChild(am4core.Label);
+	label.isMeasured = false; 		   // Отсутствие связи элемента с механизмом компоновки Container (используется для расположения элемента вручную).
+	label.fontSize = "6em";
+	label.x = am4core.percent(50); // ??? Непонятно
+	label.paddingBottom = 0;
+	label.horizontalCenter = "middle"; // Выравнивание по горизонтали.
+	label.verticalCenter = "bottom";   // Выравнивание по вертикали.
+	label.text = gaugeData.score.toFixed(1);
+	
+	let label2 = gaugeChart.radarContainer.createChild(am4core.Label);
+	label2.isMeasured = false;
+	label2.fontSize = "2em";
+	label2.horizontalCenter = "middle";
+	label2.verticalCenter = "bottom";
+	label2.text = "text";
+	
+	let hand = gaugeChart.hands.push(new am4charts.ClockHand());
+	hand.axis = axis2;
+	hand.innerRadius = am4core.percent(55);
+	hand.startWidth = 8;
+	hand.pin.disabled = true; // Центральный штырь.
+	hand.value = gaugeData.score;
+	hand.fill = am4core.color("#444");
+	hand.stroke = am4core.color("#000");
+	
+	// Вспомогательные функции.
+	
+	setInterval(function() {
+    let value = chartMin + Math.random() * (chartMax - chartMin);
+    hand.showValue(value, 1000, am4core.ease.cubicOut);
+	}, 2000);
+	
+	hand.events.on("positionchanged", function(){
+		label.text = axis2.positionToValue(hand.currentPosition).toFixed(1);
+		// let value2 = axis.positionToValue(hand.currentPosition);
+		// label2.text = axis2.axisRanges.label;
+		// label2.fill = am4core.color(matchingGrade.color);
+		// label2.stroke = am4core.color(matchingGrade.color);  
+	})
+};
 
+const drawGaugeChart2 = () => {
+	// Вспомогательная функция.
+	setInterval(() => {
+	  hand1.showValue(Math.random() * 160, 1000, am4core.ease.cubicOut);
+	  hand2.showValue(Math.random() * 240, 1000, am4core.ease.cubicOut);
+	}, 2000);
+	
+	// ---
+	
+	let gaugeChart = am4core.create("gaugeChart2", am4charts.GaugeChart);
+	
+	let axis1 = gaugeChart.xAxes.push(new am4charts.ValueAxis()); 
+	axis1.min = 0;
+	axis1.max = 160;
+	axis1.strictMinMax = true;
+	axis1.renderer.inside = true; // Размещение меток осей внутри области графика.
+	axis1.renderer.radius = am4core.percent(97);
+	axis1.renderer.line.strokeOpacity = 1;
+	axis1.renderer.line.strokeWidth = 5;
+	axis1.renderer.line.stroke = gaugeChart.colors.getIndex(0);
+	axis1.renderer.labels.template.radius = 35;
+	axis1.renderer.grid.template.disabled = true;	
+	
+	let axis2 = gaugeChart.xAxes.push(new am4charts.ValueAxis()); 
+	axis2.min = 0;
+	axis2.max = 240;
+	axis2.strictMinMax = true;
+	axis2.renderer.line.strokeOpacity = 1;
+	axis2.renderer.line.strokeWidth = 5;
+	axis2.renderer.line.stroke = gaugeChart.colors.getIndex(3);
+	axis2.renderer.grid.template.disabled = true;
+
+	let hand1 = gaugeChart.hands.push(new am4charts.ClockHand());
+	hand1.value = 10;
+	hand1.fill = gaugeChart.colors.getIndex(0);
+	hand1.stroke = gaugeChart.colors.getIndex(0);
+	hand1.axis = axis1;
+	hand1.pin.radius = 14;
+	hand1.startWidth = 10;
+	
+	let hand2 = gaugeChart.hands.push(new am4charts.ClockHand());
+	hand2.value = 10;
+	hand2.fill = gaugeChart.colors.getIndex(3);
+	hand2.stroke = gaugeChart.colors.getIndex(3);
+	hand2.axis = axis2;
+	hand2.pin.radius = 10;
+	hand2.startWidth = 10;
 };
 drawGaugeChart1();
+drawGaugeChart2();

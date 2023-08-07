@@ -15,64 +15,88 @@
 </head>
 
 <body>
-	<!-- Круговые диаграммы -->
-	<div class="chartContainer">
-		<div class="chart">
-			<p>Кольцевая диаграмма</p>
-			<div id="doughnutChart"></div>	
-		</div>		
+	<!-- Doughnut & Pie Charts -->
+	<table>
+	  <thead>
+		<tr>
+		  <th>Doughnut Chart</th>
+		  <th class="space"> &nbsp </th>
+		  <th>Pie Chart</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		<tr>
+		  <td id="doughnutChart"></td>
+		  <td class="space"> &nbsp </td>
+		  <td id="pieChart"></td>
+		</tr>
+	  </tbody>
+	</table>
 		
-		<div class="chart">
-			<p>Круговая диаграмма</p>
-			<div class="chartContainer">
-				<div id="pieChart"></div>
-				<div id="legend"></div>			
-			</div>
-		</div>
-	</div>	
+	<!-- XY Charts -->
+	<table>
+	  <thead>
+		<tr>
+		  <th>Line-Column Chart</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		<tr>
+		  <td id="lineColumnChart"></td>
+		</tr>
+	  </tbody>
+	</table>
 	
-	<!-- XY-диаграммы -->
-	<div class="chartContainer">
-		<div class="chart">
-			<p>Линейно-столбчатая диаграмма</p>
-			<div id="lineColumnChart"></div>	
-		</div>
-	</div>
-	
-	<div class="chartContainer">
-		<div class="chart">
-			<p>Cтолбчатая диаграмма</p>
-			<div id="columnChart"></div>	
-		</div>		
+	<table>
+	  <thead>
+		<tr>
+		  <th>Column Chart</th>
+		  <th class="space"> &nbsp </th>
+		  <th>Line Chart</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		<tr>
+		  <td id="columnChart"></td>
+		  <td class="space"> &nbsp </td>
+		  <td id="lineChart"></td>
+		</tr>
+	  </tbody>
+	</table>
 		
-		<div class="chart">
-			<p>Линейная диаграмма</p>
-			<div id="lineChart"></div>	
-		</div>		
-	</div>	
-	
-	<!-- Radar-диаграммы -->
-	<div class="chartContainer">
-		<div class="chart">
-			<div id="radarChart1"></div>	
-		</div>			
-		<div class="chart">
-			<div id="radarChart2"></div>	
-		</div>			
-		<div class="chart">
-			<div id="radarChart3"></div>	
-		</div>				
-	</div>
-	
-	<p>Калибровочные диаграммы</p>
-	<div class="chartContainer">
-		<div class="chart">
-			<div id="gaugeChart1"></div>	
-		</div>			
-		<div class="chart">
-			<div id="gaugeChart2"></div>	
-		</div>							
-	</div>
+	<!-- Radar Charts -->
+	<table>
+	  <thead>
+		<tr>
+		  <th colspan="5">Radar Charts</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		<tr>
+		  <td id="radarChart1"></td>
+		  <td class="space"> &nbsp </th>
+		  <td id="radarChart2"></td>
+		  <td class="space"> &nbsp </th>
+		  <td id="radarChart3"></td>
+		</tr>
+	  </tbody>
+	</table>
+		
+	<!-- Gauge Charts -->
+	<table>
+	  <thead>
+		<tr>
+		  <th colspan="5">Gauge  Charts</th>
+		</tr>
+	  </thead>
+	  <tbody>
+		<tr>
+		  <td id="gaugeChart1"></td>
+		  <td class="space"> &nbsp </th>
+		  <td id="gaugeChart2"></td>
+		</tr>
+	  </tbody>
+	</table>
 	
 	<script src="index.js"></script>
 </body>
