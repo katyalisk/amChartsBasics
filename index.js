@@ -241,23 +241,23 @@ const drawPieChart = () => {
 	pieSeries.labels.template.fill = am4core.color("white"); 				 // Цвет текстовой метки.
 	pieSeries.hiddenState.properties.endAngle = -90;
 
-	// Чтобы всё помещалось.
-	pieSeries.labels.template.adapter.add("radius", function(radius, target) { // !!! Следует почитать про callback-функции !!!
-	  if (target.dataItem && (target.dataItem.values.value.percent < 10)) {
+    // Размещение текстовой метки внутри/вне диаграммы.
+	pieSeries.labels.template.adapter.add("radius", function(radius, target) {
+	  if (!!target.dataItem && (target.dataItem.values.value.percent < 10)) {
 		return 0;
 	  }
 	  return radius;
 	});
 
 	pieSeries.labels.template.adapter.add("fill", function(color, target) {
-	  if (target.dataItem && (target.dataItem.values.value.percent < 10)) {
+	  if (!!target.dataItem && (target.dataItem.values.value.percent < 10)) {
 		return am4core.color("#000");
 	  }
 	  return color;
 	});
 
-	// Вытягивание только одного кусочка.
-	pieSeries.slices.template.events.on("hit", function(ev) { // !!! Следует почитать про event-ы !!!
+	// Выбор только одного элемента "slice".
+	pieSeries.slices.template.events.on("hit", function(ev) {
 	  let series = ev.target.dataItem.component;
 	  series.slices.each(function(item) {
 		if (item.isActive && item != ev.target) {
@@ -405,14 +405,8 @@ const drawLineChart = () => {
 };
 drawLineChart();
 
-// (доделать)
 // --- Radar Charts ---
-const drawRadarChart1 = () => {
-	// let container = am4core.create("radarChart", am4core.Container); // Нагружал систему (падал framerate).
-	// container.width = am4core.percent(100);
-	// container.height = am4core.percent(100);
-	// container.layout = "horizontal";
-	
+const drawRadarChart1 = () => {	
 	let radarChart = am4core.create("radarChart1", am4charts.RadarChart);   // Экземпляр радиальной диаграммы.
 	radarChart.data = columnData;
 	radarChart.cursor = new am4charts.RadarCursor();
@@ -427,15 +421,20 @@ const drawRadarChart1 = () => {
 	radarSeries.dataFields.categoryX = "country";
 	radarSeries.dataFields.valueY = "sales";
 	radarSeries.name = "Sales";
+	radarSeries.stroke = "#6771dc";
 	radarSeries.strokeWidth = 3;
 	radarSeries.zIndex = 2;	// Приоритет отображения на графике.
+	
+	let bullet = radarSeries.bullets.push(new am4charts.CircleBullet());
+	bullet.radius = 3;
+	bullet.fill = am4core.color("#6794dc");
 
 	let secondRadarSeries = radarChart.series.push(new am4charts.RadarColumnSeries());
 	secondRadarSeries.dataFields.valueY = "marketing";
 	secondRadarSeries.dataFields.categoryX = "country";
 	secondRadarSeries.name = "Units";
 	secondRadarSeries.strokeWidth = 0;
-	secondRadarSeries.columns.template.fill = am4core.color("#6771DC");
+	secondRadarSeries.columns.template.fill = am4core.color("#67b7dc");
 	secondRadarSeries.columns.template.fillOpacity = 0.5;
 	secondRadarSeries.columns.template.tooltipText = "Series: {name}\nCategory: {categoryX}\nValue: {valueY}";
 };
@@ -463,7 +462,7 @@ const drawRadarChart2 = () => {
 	fRadarSeries.name = "Research";
 	fRadarSeries.strokeWidth = 0;
 	fRadarSeries.columns.template.tooltipText = "Series: {name}\nValue: {valueX}";
-	fRadarSeries.sequencedInterpolation = true;
+	fRadarSeries.sequencedInterpolation = true; 	// Анимация появления элементов.
 	fRadarSeries.sequencedInterpolationDelay = 100;
 	fRadarSeries.stacked = true;	
 	
@@ -545,6 +544,20 @@ drawRadarChart3();
 
 // --- Gauge Charts ---
 const drawGaugeChart1 = () => {
+	// Вспомогательная функция.
+	const lookUpGrade = (lookupScore, grades) => {
+	  for (let i = 0; i < grades.length; i++) {
+		if (
+		  grades[i].lowScore < lookupScore &&
+		  grades[i].highScore >= lookupScore
+		) {
+		  return grades[i];
+		}
+	  }
+	  return null;
+	};
+	// ---
+	
 	let gaugeChart = am4core.create("gaugeChart1", am4charts.GaugeChart);
 	gaugeChart.innerRadius = am4core.percent(80);
 	
@@ -577,51 +590,52 @@ const drawGaugeChart1 = () => {
 	axis2.renderer.labels.template.fillOpacity = 0.7;
 	
 	for (let grading of gaugeData.gradingData) {
-	  let range = axis2.axisRanges.create(); // Создание диапазона (начальное и конечное положение на оси).
-	  range.axisFill.fill = am4core.color(grading.color);
-	  range.axisFill.fillOpacity = 0.8;
-	  range.axisFill.zIndex = -1;
-	  range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
-	  range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
-	  range.grid.strokeOpacity = 0;
-	  range.stroke = am4core.color(grading.color).lighten(-0.1);
-	  range.label.inside = true;
-	  range.label.text = grading.title.toUpperCase();
-	  range.label.inside = true;
-	  range.label.location = 0.5;
-	  range.label.inside = true;
-	  range.label.radius = am4core.percent(10);
-	  range.label.paddingBottom = -5;
-	  range.label.fontSize = "0.6em";
+		let range = axis2.axisRanges.create(); // Создание диапазона (начальное и конечное положение на оси).
+		range.axisFill.fill = am4core.color(grading.color);
+		range.axisFill.fillOpacity = 0.8;
+		range.axisFill.zIndex = -1;
+		range.value = grading.lowScore > chartMin ? grading.lowScore : chartMin;
+		range.endValue = grading.highScore < chartMax ? grading.highScore : chartMax;
+		range.grid.strokeOpacity = 0;
+		range.stroke = am4core.color(grading.color).lighten(-0.1);
+		range.label.inside = true;
+		range.label.text = grading.title.toUpperCase();
+		range.label.inside = true;
+		range.label.location = 0.5;
+		range.label.inside = true;
+		range.label.radius = am4core.percent(10);
+		range.label.paddingBottom = -5;
+		range.label.fontSize = "0.6em";
 	};
+	
+	let matchingGrade = lookUpGrade(gaugeData.score, gaugeData.gradingData);
 	
 	let label = gaugeChart.radarContainer.createChild(am4core.Label);
 	label.isMeasured = false; 		   // Отсутствие связи элемента с механизмом компоновки Container (используется для расположения элемента вручную).
 	label.fontSize = "6em";
-	label.x = am4core.percent(50); // ??? Непонятно
-	label.paddingBottom = 0;
+	label.x = am4core.percent(50); 	   // ??? Непонятно
+	label.paddingBottom = 10;
 	label.horizontalCenter = "middle"; // Выравнивание по горизонтали.
 	label.verticalCenter = "bottom";   // Выравнивание по вертикали.
 	label.text = gaugeData.score.toFixed(1);
 	
 	let label2 = gaugeChart.radarContainer.createChild(am4core.Label);
 	label2.isMeasured = false;
-	label2.fontSize = "2em";
+	label2.fontSize = "1em";
 	label2.horizontalCenter = "middle";
 	label2.verticalCenter = "bottom";
-	label2.text = "text";
+	label2.text = matchingGrade.title.toUpperCase();
 	
 	let hand = gaugeChart.hands.push(new am4charts.ClockHand());
 	hand.axis = axis2;
 	hand.innerRadius = am4core.percent(55);
 	hand.startWidth = 8;
 	hand.pin.disabled = true; // Центральный штырь.
-	hand.value = gaugeData.score;
+	hand.value = 0;
 	hand.fill = am4core.color("#444");
 	hand.stroke = am4core.color("#000");
-	
+
 	// Вспомогательные функции.
-	
 	setInterval(function() {
     let value = chartMin + Math.random() * (chartMax - chartMin);
     hand.showValue(value, 1000, am4core.ease.cubicOut);
@@ -629,11 +643,11 @@ const drawGaugeChart1 = () => {
 	
 	hand.events.on("positionchanged", function(){
 		label.text = axis2.positionToValue(hand.currentPosition).toFixed(1);
-		// let value2 = axis.positionToValue(hand.currentPosition);
-		// label2.text = axis2.axisRanges.label;
-		// label2.fill = am4core.color(matchingGrade.color);
-		// label2.stroke = am4core.color(matchingGrade.color);  
-	})
+		let matchingGrade = lookUpGrade(axis.positionToValue(hand.currentPosition), gaugeData.gradingData);
+		if (matchingGrade !== null) {
+			label2.text = matchingGrade.title.toUpperCase();
+		}		
+	});
 };
 
 const drawGaugeChart2 = () => {
@@ -641,8 +655,7 @@ const drawGaugeChart2 = () => {
 	setInterval(() => {
 	  hand1.showValue(Math.random() * 160, 1000, am4core.ease.cubicOut);
 	  hand2.showValue(Math.random() * 240, 1000, am4core.ease.cubicOut);
-	}, 2000);
-	
+	}, 1000);
 	// ---
 	
 	let gaugeChart = am4core.create("gaugeChart2", am4charts.GaugeChart);
@@ -686,3 +699,255 @@ const drawGaugeChart2 = () => {
 };
 drawGaugeChart1();
 drawGaugeChart2();
+
+// --- Charts Container ---
+const drawMixedCharts = () => {
+	let container = am4core.create("chartsContainer", am4core.Container); // Контейнер для хранения диаграмм.
+	container.layout = "grid"; // Разметка контейнера.
+	container.fixedWidthGrid = false;
+	container.width = am4core.percent(100);
+	container.height = am4core.percent(100);
+	container.paddingTop = 20;
+	container.paddingRight = 0;
+	container.paddingLeft = 20;
+	container.paddingBottom = 0;
+
+	let colors = new am4core.ColorSet();
+
+	const createLine = (title, data, color) => {
+		let chart = container.createChild(am4charts.XYChart);
+		chart.width = am4core.percent(45);
+		chart.height = 100;
+
+		chart.data = data;
+
+		chart.titles.template.fontSize = 10;
+		chart.titles.template.textAlign = "left";
+		chart.titles.template.isMeasured = false;
+		chart.titles.create().text = title;
+
+		let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+		dateAxis.renderer.grid.template.disabled = true;
+		dateAxis.renderer.labels.template.disabled = true;
+		dateAxis.startLocation = 0.5;
+		dateAxis.endLocation = 0.7;
+		dateAxis.cursorTooltipEnabled = false;
+
+		let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+		valueAxis.min = 0;
+		valueAxis.renderer.grid.template.disabled = true;
+		valueAxis.renderer.baseGrid.disabled = true;
+		valueAxis.renderer.labels.template.disabled = true;
+		valueAxis.cursorTooltipEnabled = false;
+
+		chart.cursor = new am4charts.XYCursor();
+		chart.cursor.lineY.disabled = true;
+		chart.cursor.behavior = "none";
+
+		let series = chart.series.push(new am4charts.LineSeries());
+		series.tooltipText = "{date}: [bold]{value}";
+		series.dataFields.dateX = "date";
+		series.dataFields.valueY = "value";
+		series.tensionX = 0.8;
+		series.strokeWidth = 2;
+		series.stroke = color;
+
+		let bullet = series.bullets.push(new am4charts.CircleBullet());
+		bullet.circle.opacity = 0;
+		bullet.circle.fill = color;
+		bullet.circle.propertyFields.opacity = "opacity";
+		bullet.circle.radius = 3;
+
+		return chart;
+	};
+
+	const createColumn = (title, data, color) => {
+		let chart = container.createChild(am4charts.XYChart);
+		chart.width = am4core.percent(45);
+		chart.height = 100;
+
+		chart.data = data;
+
+		chart.titles.template.fontSize = 10;
+		chart.titles.template.textAlign = "left";
+		chart.titles.template.isMeasured = false;
+		chart.titles.create().text = title;
+
+		let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+		dateAxis.renderer.grid.template.disabled = true;
+		dateAxis.renderer.labels.template.disabled = true;
+		dateAxis.cursorTooltipEnabled = false;
+
+		let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+		valueAxis.min = 0;
+		valueAxis.renderer.grid.template.disabled = true;
+		valueAxis.renderer.baseGrid.disabled = true;
+		valueAxis.renderer.labels.template.disabled = true;
+		valueAxis.cursorTooltipEnabled = false;
+
+		chart.cursor = new am4charts.XYCursor();
+		chart.cursor.lineY.disabled = true;
+
+		let series = chart.series.push(new am4charts.ColumnSeries());
+		series.tooltipText = "{date}: [bold]{value}";
+		series.dataFields.dateX = "date";
+		series.dataFields.valueY = "value";
+		series.strokeWidth = 0;
+		series.fillOpacity = 0.5;
+		series.columns.template.propertyFields.fillOpacity = "opacity";
+		series.columns.template.fill = color;
+		
+		series.columns.template.events.on("hit", function(ev) {
+			let series = ev.target.dataItem.valueY;
+			console.log(series);
+		});
+
+		return chart;
+	};
+
+	const createPie = (data, color) => {
+		let chart = container.createChild(am4charts.PieChart);
+		chart.width = am4core.percent(10);
+		chart.height = 100;
+
+		chart.data = data;
+
+		let pieSeries = chart.series.push(new am4charts.PieSeries());
+		pieSeries.dataFields.value = "value";
+		pieSeries.dataFields.category = "category";
+		pieSeries.labels.template.disabled = true;
+		pieSeries.ticks.template.disabled = true;
+		pieSeries.slices.template.fill = color;
+		pieSeries.slices.template.adapter.add("fill", function(fill, target) {
+		  return fill.lighten(0.1 * target.dataItem.index);
+		});
+		pieSeries.slices.template.stroke = am4core.color("#fff");
+
+		return chart;
+	};
+
+	createLine("AAPL (Price)", [
+	{ "date": new Date(2018, 0, 1, 8, 0, 0), "value": 57 },
+	{ "date": new Date(2018, 0, 1, 9, 0, 0), "value": 27 },
+	{ "date": new Date(2018, 0, 1, 10, 0, 0), "value": 24 },
+	{ "date": new Date(2018, 0, 1, 11, 0, 0), "value": 59 },
+	{ "date": new Date(2018, 0, 1, 12, 0, 0), "value": 33 },
+	{ "date": new Date(2018, 0, 1, 13, 0, 0), "value": 46 },
+	{ "date": new Date(2018, 0, 1, 14, 0, 0), "value": 20 },
+	{ "date": new Date(2018, 0, 1, 15, 0, 0), "value": 42 },
+	{ "date": new Date(2018, 0, 1, 16, 0, 0), "value": 59, "opacity": 1}
+	], colors.getIndex(0));
+
+	createColumn("AAPL (Turnover)", [
+	{ "date": new Date(2018, 0, 1, 8, 0, 0), "value": 22 }, 
+	{ "date": new Date(2018, 0, 1, 9, 0, 0), "value": 25 }, 
+	{ "date": new Date(2018, 0, 1, 10, 0, 0), "value": 40 }, 
+	{ "date": new Date(2018, 0, 1, 11, 0, 0), "value": 35 }, 
+	{ "date": new Date(2018, 0, 1, 12, 0, 0), "value": 29 }, 
+	{ "date": new Date(2018, 0, 1, 13, 0, 0), "value": 1 }, 
+	{ "date": new Date(2018, 0, 1, 14, 0, 0), "value": 15 }, 
+	{ "date": new Date(2018, 0, 1, 15, 0, 0), "value": 29 }, 
+	{ "date": new Date(2018, 0, 1, 16, 0, 0), "value": 33, "opacity": 1 }
+	], colors.getIndex(0));
+
+	createPie([
+	{ "category": "Marketing", "value": 501 }, 
+	{ "category": "Research", "value": 301 }, 
+	{ "category": "Sales", "value": 201 }, 
+	{ "category": "HR", "value": 165 }
+	], colors.getIndex(0));
+
+	createLine("MSFT (Price)", [
+	{ "date": new Date(2018, 0, 1, 8, 0, 0), "value": 22 }, 
+	{ "date": new Date(2018, 0, 1, 9, 0, 0), "value": 25 }, 
+	{ "date": new Date(2018, 0, 1, 10, 0, 0), "value": 40 }, 
+	{ "date": new Date(2018, 0, 1, 11, 0, 0), "value": 35 }, 
+	{ "date": new Date(2018, 0, 1, 12, 0, 0), "value": 29 }, 
+	{ "date": new Date(2018, 0, 1, 13, 0, 0), "value": 1 }, 
+	{ "date": new Date(2018, 0, 1, 14, 0, 0), "value": 15 }, 
+	{ "date": new Date(2018, 0, 1, 15, 0, 0), "value": 29 }, 
+	{ "date": new Date(2018, 0, 1, 16, 0, 0), "value": 33, "opacity": 1 }
+	], colors.getIndex(1));
+
+	createColumn("MSFT (Turnover)", [
+	{ "date": new Date(2018, 0, 1, 8, 0, 0), "value": 57 }, 
+	{ "date": new Date(2018, 0, 1, 9, 0, 0), "value": 27 }, 
+	{ "date": new Date(2018, 0, 1, 10, 0, 0), "value": 24 }, 
+	{ "date": new Date(2018, 0, 1, 11, 0, 0), "value": 59 }, 
+	{ "date": new Date(2018, 0, 1, 12, 0, 0), "value": 33 }, 
+	{ "date": new Date(2018, 0, 1, 13, 0, 0), "value": 46 }, 
+	{ "date": new Date(2018, 0, 1, 14, 0, 0), "value": 20 }, 
+	{ "date": new Date(2018, 0, 1, 15, 0, 0), "value": 42 }, 
+	{ "date": new Date(2018, 0, 1, 16, 0, 0), "value": 59, "opacity": 1 }
+	], colors.getIndex(1));
+
+	createPie([
+	{ "category": "Marketing", "value": 130 }, 
+	{ "category": "Research", "value": 450 }, 
+	{ "category": "Sales", "value": 400 }, 
+	{ "category": "HR", "value": 200 }
+	], colors.getIndex(1));
+
+	createLine("AMZN (Price)", [
+	{ "date": new Date(2018, 0, 1, 8, 0, 0), "value": 16 }, 
+	{ "date": new Date(2018, 0, 1, 9, 0, 0), "value": 62 }, 
+	{ "date": new Date(2018, 0, 1, 10, 0, 0), "value": 55 }, 
+	{ "date": new Date(2018, 0, 1, 11, 0, 0), "value": 34 }, 
+	{ "date": new Date(2018, 0, 1, 12, 0, 0), "value": 29 }, 
+	{ "date": new Date(2018, 0, 1, 13, 0, 0), "value": 29 }, 
+	{ "date": new Date(2018, 0, 1, 14, 0, 0), "value": 28 }, 
+	{ "date": new Date(2018, 0, 1, 15, 0, 0), "value": 32 }, 
+	{ "date": new Date(2018, 0, 1, 16, 0, 0), "value": 30, "opacity": 1 }
+	], colors.getIndex(2));
+
+	createColumn("AMZN (Turnover)", [
+	{ "date": new Date(2018, 0, 1, 8, 0, 0), "value": 50 }, 
+	{ "date": new Date(2018, 0, 1, 9, 0, 0), "value": 51 }, 
+	{ "date": new Date(2018, 0, 1, 10, 0, 0), "value": 62 }, 
+	{ "date": new Date(2018, 0, 1, 11, 0, 0), "value": 60 }, 
+	{ "date": new Date(2018, 0, 1, 12, 0, 0), "value": 25 }, 
+	{ "date": new Date(2018, 0, 1, 13, 0, 0), "value": 20 }, 
+	{ "date": new Date(2018, 0, 1, 14, 0, 0), "value": 70 }, 
+	{ "date": new Date(2018, 0, 1, 15, 0, 0), "value": 42 }, 
+	{ "date": new Date(2018, 0, 1, 16, 0, 0), "value": 33, "opacity": 1 }
+	], colors.getIndex(2));
+
+	createPie([
+	{ "category": "Marketing", "value": 220 }, 
+	{ "category": "Research", "value": 200 }, 
+	{ "category": "Sales", "value": 150 }, 
+	{ "category": "HR", "value": 125 }
+	], colors.getIndex(2));
+
+	createLine("FB (Price)", [
+	{ "date": new Date(2018, 0, 1, 8, 0, 0), "value": 52 }, 
+	{ "date": new Date(2018, 0, 1, 9, 0, 0), "value": 55 }, 
+	{ "date": new Date(2018, 0, 1, 10, 0, 0), "value": 35 }, 
+	{ "date": new Date(2018, 0, 1, 11, 0, 0), "value": 34 }, 
+	{ "date": new Date(2018, 0, 1, 12, 0, 0), "value": 39 }, 
+	{ "date": new Date(2018, 0, 1, 13, 0, 0), "value": 42 }, 
+	{ "date": new Date(2018, 0, 1, 14, 0, 0), "value": 29 }, 
+	{ "date": new Date(2018, 0, 1, 15, 0, 0), "value": 22 }, 
+	{ "date": new Date(2018, 0, 1, 16, 0, 0), "value": 15, "opacity": 1 }
+	], colors.getIndex(3));
+
+	createColumn("FB (Turnover)", [
+	{ "date": new Date(2018, 0, 1, 8, 0, 0), "value": 20 }, 
+	{ "date": new Date(2018, 0, 1, 9, 0, 0), "value": 20 }, 
+	{ "date": new Date(2018, 0, 1, 10, 0, 0), "value": 25 }, 
+	{ "date": new Date(2018, 0, 1, 11, 0, 0), "value": 26 }, 
+	{ "date": new Date(2018, 0, 1, 12, 0, 0), "value": 29 }, 
+	{ "date": new Date(2018, 0, 1, 13, 0, 0), "value": 27 }, 
+	{ "date": new Date(2018, 0, 1, 14, 0, 0), "value": 25 }, 
+	{ "date": new Date(2018, 0, 1, 15, 0, 0), "value": 32 }, 
+	{ "date": new Date(2018, 0, 1, 16, 0, 0), "value": 30, "opacity": 1 }
+	], colors.getIndex(3));
+
+	createPie([
+	{ "category": "Marketing", "value": 120 }, 
+	{ "category": "Research", "value": 150 }, 
+	{ "category": "Sales", "value": 125 }, 
+	{ "category": "HR", "value": 250 }
+	], colors.getIndex(3));
+};
+drawMixedCharts();
